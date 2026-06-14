@@ -1,0 +1,153 @@
+In paraview, get the wall shear from the line and not probe poitn
+
+
+#To clean empty patches.  Patch bottom is left empty after extrudeMesh
+createPatch -overwrite
+
+
+
+#To do some cleaning using sed
+#sed -i 's/empty/wedge/g' constant/polyMesh/boundary
+
+
+
+#Some extra postprocessing - Optional
+simpleFoam -postProcess -func totalPressureIncompressible -latestTime
+simpleFoam -postProcess -dict system/functionObject1 -latestTime	
+postProcess -func 'grad(U)' -latestTime
+postProcess -func "flowRatePatch(name=outlet)" -latestTime 
+postProcess -func "minMaxComponents(U,p)" -latestTime
+postProcess -func "faceMax(regionType=patch,name=outlet,U)" -latestTime
+postProcess -func surfacesDict0 -latestTime -noZero
+postProcess -func probesDict0 -latestTime -noZero
+
+
+
+To list turbulence model available for the solver:
+simpleFoam -listMomentumTransportModels
+
+
+
+
+To save cache objects + writeObjects FO
+cacheTemporaryObjects
+(
+    "kOmega:G"
+    "(beta*omega)"
+    "nuEff"
+    "(nut+nu)"
+);
+
+Objects Available in this version (just misspell something)
+
+Available temporary objects
+107
+(
+div(phi)
+surfaceIntegrate(phi)
+min(((1*mag(SndGrad(p)))|((0*mag(snGradCorr(p)))+2.22045e-16)),1)
+(-nuEff*dev(twoSymm(grad(U))))
+((interpolate(DkEff)*magSf)*(min(((1*mag(SndGrad(k)))|((0*mag(snGradCorr(k)))+2.22045e-16)),1)*snGradCorr(k)))
+(betaStar*omega)
+ddtCorr(U,phi)
+interpolate(U)
+phiHbyA
+nuEffPrevIter
+DomegaEff
+(phiHbyA-flux(p))
+nuEff
+(HbyA-((1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U)))))*grad(p)))
+surfaceIntegrate(((interpolate(nuEff)*magSf)*(min(((1*mag(SndGrad(U)))|((0*mag(snGradCorr(U)))+2.22045e-16)),1)*snGradCorr(U))))
+grad(U)
+(-nuEff*dev2(T(grad(U))))
+interpolate(DomegaEff)
+(k|omega)
+interpolate((-nuEff*dev2(T(grad(U)))))
+(interpolate((1|A(U)))*ddtCorr(U,phi))
+surfaceIntegrate((phi*linearUpwind::correction(omega)))
+interpolate(k)
+snGradCorr(omega)
+(1|A(U))
+(interpolate(DkEff)*magSf)
+((interpolate(nuEff)*magSf)*(min(((1*mag(SndGrad(U)))|((0*mag(snGradCorr(U)))+2.22045e-16)),1)*snGradCorr(U)))
+(1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U)))))
+MRFZoneList:DDt
+(min(((1*mag(SndGrad(p)))|((0*mag(snGradCorr(p)))+2.22045e-16)),1)*snGradCorr(p))
+surfaceIntegrate(((interpolate(DomegaEff)*magSf)*(min(((1*mag(SndGrad(omega)))|((0*mag(snGradCorr(omega)))+2.22045e-16)),1)*snGradCorr(omega))))
+(interpolate(DomegaEff)*magSf)
+(interpolate(HbyA)+(interpolate((1|A(U)))*ddtCorr(U,phi)))
+SndGrad(k)
+min(((1*mag(SndGrad(omega)))|((0*mag(snGradCorr(omega)))+2.22045e-16)),1)
+((alphaOmega*nut)+nu)
+min(((1*mag(SndGrad(k)))|((0*mag(snGradCorr(k)))+2.22045e-16)),1)
+min(((1*mag(SndGrad(U)))|((0*mag(snGradCorr(U)))+2.22045e-16)),1)
+(nut+nu)PrevIter
+-grad(p)
+SndGrad(U)
+HbyA
+(beta*omega)Cached
+((0*mag(snGradCorr(U)))+2.22045e-16)
+(((1|A(U))-(1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U))))))*grad(p))
+default
+nuEffCached
+DkEff
+surfaceIntegrate((phi*linearUpwind::correction(k)))
+div(((interpolate(DomegaEff)*magSf)*(min(((1*mag(SndGrad(omega)))|((0*mag(snGradCorr(omega)))+2.22045e-16)),1)*snGradCorr(omega))))
+(0.1|(1|A(U)))
+(nut*(dev(twoSymm(grad(U)))&&grad(U)))
+div(phiHbyA)
+(pPrevIter+(0.9*(p-pPrevIter)))
+(interpolate(nuEff)*magSf)
+wallShearStress
+((0.666667*gamma)*div(phi))
+(phi*linearUpwindV::correction(U))
+snGradCorr(U)
+grad(p)
+surfaceIntegrate(devTauCorrFlux)
+interpolate(DkEff)
+(((gamma*kOmega:G)*omega)|k)
+interpolate(omega)
+surfaceIntegrate(((interpolate((1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U))))))*magSf)*(min(((1*mag(SndGrad(p)))|((0*mag(snGradCorr(p)))+2.22045e-16)),1)*snGradCorr(p))))
+yPlus
+(phi*linearUpwind::correction(omega))
+grad(omega)
+((interpolate((1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U))))))*magSf)*(min(((1*mag(SndGrad(p)))|((0*mag(snGradCorr(p)))+2.22045e-16)),1)*snGradCorr(p)))
+grad(k)
+(beta*omega)
+div(((interpolate(DkEff)*magSf)*(min(((1*mag(SndGrad(k)))|((0*mag(snGradCorr(k)))+2.22045e-16)),1)*snGradCorr(k))))
+interpolate((1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U))))))
+snGradCorr(k)
+surfaceIntegrate(((interpolate(DkEff)*magSf)*(min(((1*mag(SndGrad(k)))|((0*mag(snGradCorr(k)))+2.22045e-16)),1)*snGradCorr(k))))
+pos0(phi)
+devTauCorrFlux
+div(((interpolate(nuEff)*magSf)*(min(((1*mag(SndGrad(U)))|((0*mag(snGradCorr(U)))+2.22045e-16)),1)*snGradCorr(U))))
+devTau
+H(1)
+snGrad(p)
+-nuEff
+(0.666667*div(phi))
+((0*mag(snGradCorr(p)))+2.22045e-16)
+(interpolate((1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U))))))*magSf)
+((interpolate(DomegaEff)*magSf)*(min(((1*mag(SndGrad(omega)))|((0*mag(snGradCorr(omega)))+2.22045e-16)),1)*snGradCorr(omega)))
+surfaceIntegrate((phi*linearUpwindV::correction(U)))
+div(devTauCorrFlux)
+mag(div(phi))
+((1|A(U))-(1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U))))))
+snGradCorr(p)
+interpolate(p)
+SndGrad(omega)
+dev(twoSymm(grad(U)))
+(nut+nu)
+((0*mag(snGradCorr(omega)))+2.22045e-16)
+(phi*linearUpwind::correction(k))
+surfaceIntegrate(phiHbyA)
+div(((interpolate((1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U))))))*magSf)*(min(((1*mag(SndGrad(p)))|((0*mag(snGradCorr(p)))+2.22045e-16)),1)*snGradCorr(p))))
+((interpolate(((1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U)))))-(1|A(U))))*snGrad(p))*magSf)
+kOmega:G
+((0*mag(snGradCorr(k)))+2.22045e-16)
+((1|max(((1|(1|A(U)))-H(1)),(0.1|(1|A(U)))))-(1|A(U)))
+interpolate(nuEff)
+((alphaK*nut)+nu)
+SndGrad(p)
+(nut+nu)Cached
+)

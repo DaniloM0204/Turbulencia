@@ -1,0 +1,77 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |				
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10                                  	
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    //default         cellMDLimited Gauss linear 1;
+    //default         cellLimited Gauss linear 1;
+}
+
+divSchemes
+{
+    default         none;
+    div(phi,U)      bounded Gauss linearUpwind default;
+    div(phi,U)      bounded Gauss linearUpwindV default;
+
+//You might get unbounded quantities using this setup
+/*
+    div(phi,k)      bounded Gauss linearUpwind default; 
+    div(phi,omega)  bounded Gauss linearUpwind default; 
+    div(phi,epsilon)  bounded Gauss linearUpwind default; 
+    div(phi,nuTilda) bounded Gauss linearUpwind default;
+*/
+
+    c1     bounded Gauss linearUpwind default; 
+    c2     bounded Gauss upwind; 
+    c3     bounded Gauss linear; 
+
+    div(phi,k)          $c1;
+    div(phi,omega)      $c1;
+    div(phi,epsilon)    $c1;
+    div(phi,nuTilda)    $c1;
+    div(phi,zeta)       $c1;
+    div(phi,q)          $c1;
+
+    div(nonlinearStress) Gauss linear;
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear limited 1;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         limited 1;
+}
+
+wallDist
+{
+    method meshWave;
+}
+
+// ************************************************************************* //

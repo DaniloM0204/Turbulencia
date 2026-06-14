@@ -1,0 +1,55 @@
+Modification of SA in OpenFOAM 5 to fallback to implementation in OpenFOAM 2.4 and below
+
+OF5 SA with no ft2 (base implementation)
+OF24 and below SA with fv3
+
+More info at:
+https://turbmodels.larc.nasa.gov/spalart.html 
+
+
+To compile the new model:
+
+**********************************
+Modify the file
+TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C
+
+and add in RAS models before the orignal SpalartAllmaras:
+#include "my_SpalartAllmaras.H"
+makeRASModel(my_SpalartAllmaras);
+**********************************
+
+
+**********************************
+Modify the file
+TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C
+
+and add in RAS models before the orignal SpalartAllmaras:
+#include "my_SpalartAllmaras.H"
+makeRASModel(my_SpalartAllmaras);
+**********************************
+
+
+**********************************
+Copy the files create the directory
+TurbulenceModels/turbulenceModels/RAS/my_SpalartAllmaras/
+
+and copy the se files into the newly created directory
+my_SpalartAllmaras.H
+my_SpalartAllmaras.C
+**********************************
+
+**********************************
+Create symbolic links to the previous files of copy the files in the directory (it is better to create symbolic links):
+TurbulenceModels/turbulenceModels/lnInclude
+
+
+
+These are the modifications:
+TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:56://joegi
+TurbulenceModels/compressible/turbulentFluidThermoModels/turbulentFluidThermoModels.C:59://joegi
+TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:55://joegi
+TurbulenceModels/incompressible/turbulentTransportModels/turbulentTransportModels.C:58://joegi
+TurbulenceModels/turbulenceModels/lnInclude/my_SpalartAllmaras.H:68:    This folder was added by joegi to create a new turbulence model
+TurbulenceModels/turbulenceModels/lnInclude/my_SpalartAllmaras.C:26:    This folder was added by joegi to create a new turbulence model
+TurbulenceModels/turbulenceModels/RAS/my_SpalartAllmaras/my_SpalartAllmaras.H:68:    This folder was added by joegi to create a new turbulence model
+TurbulenceModels/turbulenceModels/RAS/my_SpalartAllmaras/my_SpalartAllmaras.C:26:    This folder was added by joegi to create a new turbulence model

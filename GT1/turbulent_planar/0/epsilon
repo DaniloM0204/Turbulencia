@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |				
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10                                  	
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      epsilon;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -3 0 0 0 0];
+
+//internalField   uniform 1e-12;
+internalField   uniform 0.0001;
+//internalField   uniform 0.1;
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    outlet
+    {
+        type            zeroGradient;
+    }
+
+    top
+    {
+        //type            zeroGradient;
+        //value           uniform 0.1;
+
+	//LRN-HRN *Should work with (1)  but it gives the wrong profile
+        type            epsilonWallFunction;
+        value           uniform 1e-12;
+        ////value           $internalField;
+        ////value           uniform 1;	//10000 - 10 - 1
+
+	//Best for (1)
+        //type            fixedValue;
+        //value           uniform 1e-12;
+        //value           uniform 0.1;
+
+//(1) OK for LaunderSharmaKE 
+//LamBremhorstKE has problems with this BC
+    }
+
+    front
+    {
+        type            empty;
+    }
+    back
+    {
+        type            empty;
+    }
+    bottom
+    {
+        type            symmetry;
+    }
+}
+
+// ************************************************************************* //

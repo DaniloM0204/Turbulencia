@@ -1,0 +1,53 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |				
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10                                  	
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      momentumTransport;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//simulationType laminar;
+simulationType RAS;
+
+RAS
+{
+    //RASModel        kEpsilon;		//HRN
+    //RASModel        realizableKE;	//HRN
+    //RASModel        RNGkEpsilon;	//HRN
+    RASModel        kOmega;		//LRN/HRN
+    //RASModel        kOmegaSST;	//LRN/HRN
+    //RASModel        kOmega2006;		//LRN/HRN
+    //RASModel        ShihQuadraticKE;	//HRN-KE Nonlinear 
+    //RASModel        SpalartAllmaras;	//LRN/HRN
+    //RASModel        LienLeschziner;	//LRN-KE
+    //RASModel        qZeta; //LRN-KE
+
+    //These two requires spcial attention for epsilon BC - Needs to be fixedValue 0 for best results
+    //RASModel        LaunderSharmaKE;	//LRN-KE
+    //RASModel        LamBremhorstKE;	//LRN-KE - Issues with BCs and model
+
+
+
+    turbulence      on;
+
+    printCoeffs     on;
+
+
+//Coefficients can be set as:
+
+    //alphaK2         2;
+
+//For LaunderSharmaKE
+    //C3          -0.33;
+    //sigmaEps    0.76923;	//it is sigmaEps not alphaEps
+
+}
+
+// ************************************************************************* //

@@ -1,0 +1,39 @@
+References:
+    Flat Plate Transitional Boundary Layers
+    Experiments by Coupland
+
+    ERCOFTAC T3A 3% test-case
+
+    Savill, A. M. (1993).
+    Some recent progress in the turbulence modelling of by-pass transition.
+    Near-wall turbulent flows, 829-848.
+
+    Savill, A. M. (1996).
+    One-point closures applied to transition.
+    In Turbulence and transition modelling (pp. 233-268).
+    Springer Netherlands.
+
+    P.E. Roach, D.H. Brierley. “The influence of a turbulent free stream on zero pressure gradient 
+    transitional boundary layer development. Part I: Test Cases T3A and T3B”. 
+    Simulation of Unsteady and Transition to Turbulence. Cambridge University Press. Cambridge, pp. 319-347, 1992.
+
+    http://cfd.mace.manchester.ac.uk/cgi-bin/cfddb/prpage.cgi?20&EXP&&database/cases/case20&cas20_head.html&cas20_desc.html&cas20_meth.html&cas20_data.html&cas20_refs.html&cas20_rsol.html&0&1&0&1&1&unknown
+
+
+
+
+
+CASES
+
+RANS-kklo
+	kklo transition model
+
+
+
+RANS-kOmegaSSTLM
+	kOmegaSST LM transition model
+
+
+
+setup_TM
+	Setup of many standard turbulence models to compare with transtion models

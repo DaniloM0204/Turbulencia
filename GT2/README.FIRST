@@ -1,0 +1,141 @@
+RANS/URANS SOLUTIONS:
+
+KEpsilon_highRE_v1
+	KEpsilon using wall functions
+	Right BC values
+
+
+
+KEpsilon_highRE_v2
+	KEpsilon using wall functions
+	Wrong BC value for Epsilon
+
+
+
+KEpsilon_highRE_roughness
+	KEpsilon using wall functions and roughness
+
+
+
+KEpsilon_lowRE_V1
+	KEpsilon standard using a wall resolving mesh
+	Wrong results because this model is only wall modeling
+
+
+
+KEpsilon_lowRE_V2
+	KEpsilon standard using a wall resolving mesh
+	Even worst because we are using wrong BC values
+
+
+
+KEpsilon_LaunderSharma_V1
+	KEpsilon by Launder-Sharma 
+	This variant is wall resolving
+	Right BC values
+
+
+
+KEpsilon_LaunderSharma_V2
+	KEpsilon by Launder-Sharma 
+	This variant is wall resolving
+	Wrong BC value for Epsilon
+
+
+
+KEpsilon_realizable_highRE
+	KEpsilon realizable
+	This is a variant of the standard KEpsilon so still has the same limitations
+	Right BC values 
+	Results not good as expected but tends to do a better job
+
+
+
+KOmegaSST_highRE
+	KOmega SST - Wall modeling
+	Right BC values 
+
+
+
+KOmegaSST_highRE_roughness
+	KOmega SST - Wall modeling - Roughness
+	Right BC values 
+
+
+
+KOmegaSST_lowRE_roughness
+	KOmega SST - Wall modeling - Roughness
+	Right BC values 
+	In principal this is not OK because rougness cannot be reoslved it is too small
+
+
+
+KOmegaSST_lowRE_v1
+	KOmega SST - Wall resolving
+	Right BC values 
+
+
+
+KOmegaSST_lowRE_v2
+	KOmega SST - Wall resolving
+	Worng BC values 
+
+
+
+no_TM
+	No turbulence model in use
+
+
+
+SA_HRN
+	Spalart-Allmaras wall modeling
+	SA is wall resolving but it can be corrected to insensitive y+
+	OF implementation is wall resolving???
+	BC nut fixedValue gives completely wrong profile
+	BC nut nutUSpaldingWallFunction gives a better profile
+
+
+
+SA_LRN
+	Spalart-Allmaras wall resolving
+	Right BC values - nutUSpaldingWallFunction
+
+
+
+URANS_KO_LRN
+	Unsteady RANS using KOmega SST
+
+
+
+
+***********************************************************************************************
+
+LES/DES SOLUTIONS:
+
+DES_KO_HRN
+	DES KOmegaSST wall modeling
+
+
+
+DES_KO_LRN
+	DES KOmegaSST wall resolving
+
+
+
+DES_SA_LRN
+	DES Spalart-Allmaras wall resolving
+
+*All DES give right resutls because the resolve RANS equations close to the walls
+*Same limitations apply
+
+
+
+LES-WALE_HRN
+	LES WALE mall modeling
+
+
+
+LES-WALE_LRN
+	LES WALE mall Resolving
+
+*All LES the results are not accurate because LES requires fine meshes and 3D domains

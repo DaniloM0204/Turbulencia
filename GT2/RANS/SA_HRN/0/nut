@@ -1,0 +1,71 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |				
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10                                  	
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      nut;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -1 0 0 0 0];
+
+internalField   uniform 2e-07;
+
+boundaryField
+{
+    inlet
+    {
+        type            calculated;
+        value           uniform 0;
+    }
+    top
+    {
+        type            calculated;
+        value           uniform 0;
+    }
+    outlet
+    {
+        type            calculated;
+        value           uniform 0;
+    }
+    slipsurface
+    {
+        //type            zeroGradient;
+        type            slip;
+    }
+    bottom
+    {
+	//Not OK
+        //type            fixedValue;
+        //value           uniform 1e-12;
+
+	//Best choice
+        type 		nutUSpaldingWallFunction;
+        value         uniform 1e-12;
+
+	//SA does not compute TKE so this implementation is not accurate
+        //type 		nutkWallFunction;
+        //value         uniform 1e-12;
+
+	//Velocity based implementation
+        //type 		nutUWallFunction;
+        //value         uniform 1e-12;
+    }
+
+    front
+    {
+        type            empty;
+    }
+    back
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

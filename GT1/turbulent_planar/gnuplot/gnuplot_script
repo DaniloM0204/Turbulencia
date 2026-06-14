@@ -1,0 +1,60 @@
+set terminal qt 0
+
+set title 'Radial velocity at outlet' 
+
+set xlabel 'Radius'
+set ylabel 'Radial velocity' 
+
+#set xtics 0,0.1,1.
+set grid
+
+plot 'gnuplot/profile_laminar.xy' u 1:2 w lp pt 7 title 'OpenFOAM - Laminar solution', \
+     'postProcessing/sampleDict0/1000/profile0.xy' u 1:2 w lp pt 7 title 'OpenFOAM - Turbulent solution'
+
+
+
+
+
+set terminal qt 1
+
+set title 'Laminar profile at outlet' 
+
+set xlabel 'Radius'
+set ylabel 'Radial velocity' 
+
+#set xtics 0,0.1,1.
+set grid
+
+
+plot 'gnuplot/profile_laminar.xy' u 1:2 w p pt 7 title 'OpenFOAM - Laminar solution', \
+	1.9865597264*(1-x**2/(0.1)**2) title "Analytical solution"
+
+
+
+
+
+set terminal qt 2
+
+set title 'Turbulent profile at outlet' 
+
+set xlabel 'r/R'
+set ylabel 'u/u_{max}'
+
+#set xtics 0,0.1,1.
+set ytics 0.1
+set yrange [0:1.3]
+set grid
+
+plot  1.183*(1-x/0.1)**(1./6.) title "Tubulent correlation - Power law", \
+     'postProcessing/sampleDict0/1000/profile0.xy' u ($1):($2) w lp pt 7 title "OpenFOAM - Turbulent solution"
+
+#Power law correlation Umax*(1-r/R)^(1/n)
+#The exponent n depends on Re
+
+
+
+
+
+pause -1
+
+#    EOF

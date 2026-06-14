@@ -1,0 +1,7 @@
+#How to run me:
+
+
+
+#To plot the solution profiles using gnuplot, type in the terminal
+
+gnuplot gnuplot_script

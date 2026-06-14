@@ -1,0 +1,19 @@
+set terminal qt 0
+
+set title 'Laminar profile at outlet' 
+
+set xlabel 'Radius'
+set ylabel 'Radial velocity' 
+
+#set xtics 0,0.1,1.
+set grid
+
+
+plot \
+	'postProcessing/sampleDict0/1000/profile0.xy' u ($1):($2) w lp pt 7 title 'OpenFOAM - Laminar', \
+	1.9865597264*(1-x**2/0.1**2) lc rgb 'red' title 'Analytical solution'
+
+
+pause -1
+
+#    EOF
