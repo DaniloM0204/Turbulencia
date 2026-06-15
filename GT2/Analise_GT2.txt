@@ -1,0 +1,9 @@
+Caso | y+ Médio | Tempo de Execução
+------------------------------------------------------------
+RANS/KOmegaSST_highRE | N/A | 80.928377s
+RANS/KOmegaSST_lowRE_V1 | N/A | 118.34525s
+RANS/KEpsilon_highRE_V1 | N/A | 59.057739s
+RANS/KEpsilon_lowRE_V1 | N/A | 105.66958s
+RANS/SA_LRN | N/A | 143.45424s
+SRS/DES_KO_LRN | N/A | 74.307541s
+SRS/LES-WALE_LRN | N/A | 445.91233s

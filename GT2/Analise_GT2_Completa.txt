@@ -1,8 +1,0 @@
-RELATÓRIO DE ANALISE - GT2
-==============================
-Caso: RANS/KEpsilon_highRE_V1 | y+ Médio: 7.52456738e+01
-Caso: RANS/KEpsilon_lowRE_V1 | y+ Médio: 8.38194982e+01
-Caso: RANS/KOmegaSST_highRE | y+ Médio: 8.28643886e+01
-Caso: RANS/KOmegaSST_lowRE_V1 | y+ Médio: 6.90914563e+01
-Caso: SRS/DES_KO_LRN | y+ Médio: 6.81793224e+01
-Caso: SRS/LES-WALE_LRN | y+ Médio: 4.32617383e+01

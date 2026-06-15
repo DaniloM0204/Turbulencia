@@ -1,0 +1,6 @@
+Caso | y+ Médio
+===================
+RANS-kklo | 0.116473
+RANS-kOmegaSSTLM | 0.129878
+setup_TM/RANS-koSSTv2 | 0.181199
+setup_TM/RANS-launderSharmaKE | 0.112486

@@ -1,0 +1,230 @@
+import glob
+import os
+import subprocess
+import numpy as np
+import matplotlib.pyplot as plt
+
+# =============================================================================
+# 1. CONFIGURAÇÕES FÍSICAS DO ESCOAMENTO
+# =============================================================================
+U_INF = 1.0         # Velocidade da corrente livre [m/s]
+NU = 1.5e-5         # Viscosidade cinemática do ar [m²/s]
+RHO = 1.0           # Densidade do fluido [kg/m³]
+UTAU_REF = 0.045    # Velocidade de fricção de referência (fallback)
+
+CASOS_RANS = [
+    "RANS/KOmegaSST_highRE", "RANS/KOmegaSST_lowRE_V1", 
+    "RANS/KEpsilon_highRE_V1", "RANS/KEpsilon_lowRE_V1", "RANS/SA_LRN"
+]
+CASOS_SRS = ["SRS/DES_KO_LRN", "SRS/LES-WALE_LRN"]
+TODOS_CASOS = CASOS_RANS + CASOS_SRS
+
+CORES = ['#0060ad', '#dd181f', '#00a000', '#ffa500', '#8a2be2', '#ff1493', '#00ffff']
+
+# =============================================================================
+# 2. FERRAMENTAS DE BUSCA E LEITURA BLINDADAS
+# =============================================================================
+def ler_openfoam_blindado(caminho):
+    dados = []
+    try:
+        with open(caminho, 'r') as f:
+            for linha in f:
+                linha = linha.strip()
+                if not linha or linha.startswith('#') or linha.startswith('Time'): continue
+                
+                limpa = linha.replace('(', ' ').replace(')', ' ').replace(',', ' ')
+                partes = limpa.split()
+                try:
+                    numeros = [float(p) for p in partes]
+                    if numeros: dados.append(numeros)
+                except ValueError:
+                    continue 
+    except Exception as e:
+        print(f"      [Erro de Leitura] {e}")
+    return np.array(dados)
+
+subprocess.run("find . -name '*.sh' -exec sed -i 's/\\r$//' {} \\;", shell=True, stderr=subprocess.DEVNULL)
+
+# =============================================================================
+# 3. PREPARAÇÃO DOS GRÁFICOS
+# =============================================================================
+plt.style.use('seaborn-v0_8-whitegrid')
+
+# Gráfico 1: Lei da Parede
+fig1, ax1 = plt.subplots(figsize=(10, 6))
+ax1.set_title("Perfil Adimensional de Velocidade ($u^+$ vs $y^+$)", fontsize=14)
+ax1.set_xlabel("$y^+$ (Distância adimensional da parede)", fontsize=12)
+ax1.set_ylabel("$u^+$ (Velocidade adimensional)", fontsize=12)
+ax1.set_xscale('log')
+ax1.set_xlim(1e-2, 1e5)
+ax1.set_ylim(0, 30)
+
+y_sub = np.linspace(1e-2, 11.6, 100)
+ax1.plot(y_sub, y_sub, 'k--', linewidth=2, label='Subcamada Viscosa ($u^+ = y^+$)')
+y_log = np.linspace(11.6, 1e5, 100)
+ax1.plot(y_log, (1.0/0.41)*np.log(y_log) + 5.2, 'k-', linewidth=2, label='Lei Logarítmica')
+
+# Gráfico 2: Cf
+fig2, ax2 = plt.subplots(figsize=(10, 6))
+ax2.set_title("Coeficiente de Atrito Local $C_f$ vs Comprimento da Placa", fontsize=14)
+ax2.set_xlabel("Comprimento da placa $x$ [m]", fontsize=12)
+ax2.set_ylabel("Coeficiente de Atrito Local ($C_f$)", fontsize=12)
+ax2.set_xlim(0, 2)
+ax2.set_ylim(0, 0.014)
+
+x_teorico = np.linspace(1e-3, 2.0, 500)
+Re_x = (x_teorico * U_INF) / NU
+ax2.plot(x_teorico, 0.664 / np.sqrt(Re_x), 'k--', linewidth=2, label='Laminar (Blasius)')
+ax2.plot(x_teorico, 0.0592 / (Re_x**0.2), 'k-', linewidth=2, label='Turbulento (Prandtl)')
+
+# Gráfico 3: Perfil da Camada Limite
+fig3, ax3 = plt.subplots(figsize=(8, 8))
+ax3.set_title("Perfil de Velocidade na Camada Limite", fontsize=14)
+ax3.set_xlabel("Velocidade Adimensional (U/U_inf)", fontsize=12)
+ax3.set_ylabel("Distância da parede y [m]", fontsize=12)
+ax3.set_xlim(0, 1.2)
+ax3.set_ylim(0, 0.1) # Altura máxima definida no seu sampleDict
+
+# =============================================================================
+# 4. LOOP PRINCIPAL E EXTRAÇÃO
+# =============================================================================
+print("\n" + "="*60 + "\nINICIANDO EXTRAÇÃO DE DADOS\n" + "="*60)
+
+with open("Analise_GT2.txt", "w") as rel:
+    rel.write("Caso | y+ Médio | Tempo de Execução\n")
+    rel.write("-" * 60 + "\n")
+
+    idx_cor = 0
+    for caso in TODOS_CASOS:
+        nome_curto = caso.split('/')[-1]
+        print(f"\n[{nome_curto}]")
+        
+        if not os.path.exists(f"{caso}/postProcessing"):
+            print("   -> Simulação não encontrada. Ignorando...")
+            continue
+        
+        tempo = "N/A"
+        yplus = "N/A"
+        try:
+            logs = glob.glob(f"{caso}/log*")
+            if logs:
+                with open(logs[0], 'r') as f:
+                    for l in reversed(f.readlines()):
+                        if "ExecutionTime" in l or "ClockTime" in l:
+                            tempo = l.split()[2] + "s"; break
+            if os.path.exists("yplus.sh"):
+                out = subprocess.run(["bash", "yplus.sh", caso], capture_output=True, text=True).stdout
+                if out: yplus = out.strip().split('|')[-1].strip()
+        except: pass
+        rel.write(f"{caso} | {yplus} | {tempo}\n")
+
+        # ---------------------------------------------------------
+        # PLOTAGEM DO CF (Extração do profile1.xy)
+        # ---------------------------------------------------------
+        sample_dir = os.path.join(caso, "postProcessing", "sampleDict")
+        arq_tau = None
+        tau_valido = False
+        ultimo_tempo_str = ""
+        x_coords = None
+        tau_mag = None
+
+        if os.path.exists(sample_dir):
+            tempos = []
+            for d in os.listdir(sample_dir):
+                if os.path.isdir(os.path.join(sample_dir, d)):
+                    try: tempos.append((float(d), d))
+                    except ValueError: pass
+            
+            if tempos:
+                ultimo_tempo_str = sorted(tempos)[-1][1]
+                dir_alvo = os.path.join(sample_dir, ultimo_tempo_str)
+                
+                # Busca EXATAMENTE o arquivo profile1.xy
+                caminho_profile1 = os.path.join(dir_alvo, "profile1.xy")
+                if os.path.exists(caminho_profile1):
+                    arq_tau = caminho_profile1
+
+        if arq_tau:
+            data_tau = ler_openfoam_blindado(arq_tau)
+            # Confirma se tem ao menos 7 colunas (0:dist, 1-3:U, 4-6:tau)
+            if len(data_tau) > 0 and data_tau.shape[1] >= 7:
+                # O profile1 no sampleDict começa em x = -0.1
+                x_coords = data_tau[:, 0] - 0.1 
+                
+                # Colunas 4, 5 e 6 representam os componentes (X, Y, Z) da tensão
+                tau_mag = np.linalg.norm(data_tau[:, 4:7], axis=1)
+                
+                tau_dinamico = tau_mag * RHO
+                Cf = tau_dinamico / (0.5 * RHO * U_INF**2)
+                
+                mask = x_coords > 0.001
+                ax2.plot(x_coords[mask], Cf[mask], color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
+                print(f"   -> [Cf] OK: Plotados {np.sum(mask)} pontos de '{ultimo_tempo_str}/profile1.xy'")
+                tau_valido = True
+            else:
+                print(f"   -> [Cf] ERRO: Arquivo profile1.xy sem os campos de tensão ou dados insuficientes.")
+        else:
+            print("   -> [Cf] ERRO: Arquivo 'profile1.xy' não encontrado no último tempo.")
+
+        # ---------------------------------------------------------
+        # PLOTAGEM DA LEI DA PAREDE (U+) (Extração do profile0.xy)
+        # ---------------------------------------------------------
+        arq_u = None
+        if ultimo_tempo_str:
+            dir_alvo = os.path.join(sample_dir, ultimo_tempo_str)
+            # Busca EXATAMENTE o arquivo profile0.xy
+            caminho_profile0 = os.path.join(dir_alvo, "profile0.xy")
+            if os.path.exists(caminho_profile0):
+                arq_u = caminho_profile0
+        
+        if arq_u:
+            data_u = ler_openfoam_blindado(arq_u)
+            if len(data_u) > 0 and data_u.shape[1] >= 4:
+                # O eixo 0 é a distância ao longo da linha vertical
+                y_coord = np.abs(data_u[:, 0] - np.min(data_u[:, 0]))
+                
+                # Colunas 1, 2 e 3 representam os componentes (X, Y, Z) da velocidade
+                u_mag = np.linalg.norm(data_u[:, 1:4], axis=1)
+                
+                if tau_valido and x_coords is not None:
+                    # Pega a tensão referente à posição X do profile0 (1.90334 no sampleDict)
+                    x_prof = 1.90334 
+                    idx_closest = np.argmin(np.abs(x_coords - x_prof))
+                    u_tau = np.sqrt(tau_mag[idx_closest]) if RHO == 1.0 else np.sqrt((tau_mag[idx_closest] * RHO) / RHO)
+                else:
+                    u_tau = UTAU_REF
+                
+                y_plus = (y_coord * u_tau) / NU
+                u_plus = u_mag / u_tau
+                
+                mask_u = y_plus > 1e-3
+                ax1.axvline(x=5, color='gray', linestyle='--', linewidth=1, alpha=0.7)
+                ax1.axvline(x=30, color='gray', linestyle='--', linewidth=1, alpha=0.7)
+
+                # 2. (Opcional) Adicionar textos explicativos no topo do gráfico
+                ax1.plot(y_plus[mask_u], u_plus[mask_u], color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
+                print(f"   -> [U+] OK: Plotados {np.sum(mask_u)} pontos de '{ultimo_tempo_str}/profile0.xy'")
+            else:
+                print(f"   -> [U+] ERRO: Arquivo profile0.xy sem os campos de velocidade ou dados insuficientes.")
+        else:
+            print("   -> [U+] ERRO: Arquivo 'profile0.xy' não encontrado.")
+
+        idx_cor = (idx_cor + 1) % len(CORES)
+
+        # Plotagem do Gráfico 3
+        ax3.plot(u_mag / U_INF, y_coord, color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
+
+# =============================================================================
+# 5. SALVAMENTO
+# =============================================================================
+ax1.legend(loc='lower right', frameon=True)
+fig1.tight_layout()
+fig1.savefig("GT2_01_Lei_da_Parede.png", dpi=300)
+
+ax2.legend(loc='upper right', frameon=True)
+fig2.tight_layout()
+fig2.savefig("GT2_02_Cf_Validacao.png", dpi=300)
+
+ax3.legend(loc='upper left', frameon=True)
+# fig3.tight_layout()
+fig3.savefig("GT2_03_Perfil_Camada_Limite.png", dpi=300)

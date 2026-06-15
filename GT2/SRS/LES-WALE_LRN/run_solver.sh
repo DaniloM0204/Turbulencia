@@ -8,7 +8,7 @@ foamDictionary system/decomposeParDict -entry numberOfSubdomains -set $nprocs
 
 foamRun | tee log.solver
  
-#foamPostProcess -solver incompressibleFluid -func wallShearStress -noZero -noFunctionObjects
+foamPostProcess -solver incompressibleFluid -func wallShearStress -noZero -noFunctionObjects
 
 foamPostProcess -func  sampleDict -noZero
 

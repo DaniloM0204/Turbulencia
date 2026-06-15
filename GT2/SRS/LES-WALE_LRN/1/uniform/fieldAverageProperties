@@ -16,25 +16,25 @@ FoamFile
 
 U
 {
-    totalIter       340;
+    totalIter       1262;
     totalTime       1;
 }
 
 p
 {
-    totalIter       340;
+    totalIter       1262;
     totalTime       1;
 }
 
 wallShearStress
 {
-    totalIter       340;
+    totalIter       1262;
     totalTime       1;
 }
 
 nut
 {
-    totalIter       340;
+    totalIter       1262;
     totalTime       1;
 }
 

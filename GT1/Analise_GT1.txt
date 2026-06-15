@@ -1,12 +1,12 @@
 === RELATÓRIO TÉCNICO GT1 ===
 Modelo: laminar
- - Custo: 8.553462 s
+ - Custo: 12.576944 s
  - y+ Parede: Min N/A | Max N/A | Med N/A
  - Tensão Cisalhante processada.
 ---
 Modelo: turbulent_wedge
- - Custo: 15.20571 s
- - y+ Parede: Min top | Max 1.159112415311e+00 | Med 2.458173480883e+00
+ - Custo: 21.62757 s
+ - y+ Parede: Min 1.159112415311e+00 | Max 2.458173480883e+00 | Med 1.262212488936e+00
  - Tensão Cisalhante processada.
 ---
 
