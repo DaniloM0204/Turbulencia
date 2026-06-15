@@ -1,57 +1,0 @@
-/*--------------------------------*- C++ -*----------------------------------*\
-  =========                 |
-  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  12
-     \\/     M anipulation  |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    format      binary;
-    class       volScalarField;
-    location    "0";
-    object      yPlus;
-}
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-dimensions      [];
-
-internalField   uniform 0;
-
-boundaryField
-{
-    inlet
-    {
-        type            calculated;
-        value           uniform 0;
-    }
-    top
-    {
-        type            calculated;
-        value           uniform 0;
-    }
-    outlet
-    {
-        type            calculated;
-        value           uniform 0;
-    }
-    slipsurface
-    {
-        type            calculated;
-        value           uniform 0;
-    }
-    bottom
-    {
-        type            calculated;
-        value           nonuniform List<scalar> 
-100
-(¹'yžà*@¹'yžà*@½'yžà*@¸'yžà*@¼'yžà*@¹'yžà*@¸'yžà*@¹'yžà*@¼'yžà*@¼'yžà*@¹'yžà*@¶'yžà*@¸'yžà*@¼'yžà*@¸'yžà*@¸'yžà*@½'yžà*@½'yžà*@¸'yžà*@½'yžà*@½'yžà*@·'yžà*@¼'yžà*@¹'yžà*@½'yžà*@¸'yžà*@¾'yžà*@·'yžà*@¸'yžà*@¼'yžà*@¼'yžà*@¸'yžà*@¹'yžà*@¼'yžà*@½'yžà*@¹'yžà*@½'yžà*@¼'yžà*@½'yžà*@¼'yžà*@¹'yžà*@³'yžà*@Á'yžà*@¸'yžà*@¹'yžà*@¹'yžà*@¿'yžà*@·'yžà*@½'yžà*@¿'yžà*@¼'yžà*@¸'yžà*@¿'yžà*@¸'yžà*@½'yžà*@²'yžà*@É'yžà*@²'yžà*@·'yžà*@¼'yžà*@¹'yžà*@Á'yžà*@³'yžà*@¿'yžà*@Á'yžà*@µ'yžà*@Á'yžà*@³'yžà*@¹'yžà*@¹'yžà*@½'yžà*@¼'yžà*@¼'yžà*@¹'yžà*@Á'yžà*@½'yžà*@¸'yžà*@¹'yžà*@¼'yžà*@¼'yžà*@¸'yžà*@¹'yžà*@½'yžà*@½'yžà*@¹'yžà*@¹'yžà*@¹'yžà*@¹'yžà*@½'yžà*@Á'yžà*@µ'yžà*@¹'yžà*@¸'yžà*@¸'yžà*@¼'yžà*@¹'yžà*@¹'yžà*@¹'yžà*@Á'yžà*@¸'yžà*@);
-    }
-    frontandback
-    {
-        type            empty;
-    }
-}
-
-
-// ************************************************************************* //

@@ -1,0 +1,42 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      binary;
+    class       dictionary;
+    location    "2/uniform";
+    object      fieldAverageProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+U
+{
+    totalIter       662;
+    totalTime       2;
+}
+
+p
+{
+    totalIter       662;
+    totalTime       2;
+}
+
+wallShearStress
+{
+    totalIter       662;
+    totalTime       2;
+}
+
+nut
+{
+    totalIter       662;
+    totalTime       2;
+}
+
+
+// ************************************************************************* //

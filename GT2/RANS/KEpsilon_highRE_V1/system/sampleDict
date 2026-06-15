@@ -71,7 +71,7 @@ sets
 	type	lineCell;
 
 	//type	lineUniform;
-	//nPoints 1000;	
+	nPoints 1000;	
 			
 	axis 	distance; //y;	
 	
