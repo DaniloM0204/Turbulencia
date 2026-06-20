@@ -1,0 +1,5 @@
+Caso | y+ Médio | Tempo de Execução
+RANS/kklo | 0.1177 | 455.41 \\
+RANS/kOmegaSSTLM | 0.2128 | 478.95 \\
+RANS/RANS-koSSTv2 | 0.2329 | 764.37 \\
+RANS/RANS-launderSharmaKE | 0.1934 | 1249.84 \\

@@ -78,10 +78,13 @@ ax3.set_ylabel("Distância da parede y [m]", fontsize=12)
 ax3.set_xlim(0, 1.2)
 ax3.set_ylim(0, 0.1)
 
-
+# ==============================================================================
+# EXTRAÇÃO DE DADOS ROBUSTA PARA O ARQUIVO .TXT
+# ==============================================================================
 with open("Analise_GT2.txt", "w") as rel:
-    rel.write("Caso | y+ Médio | Tempo de Execução\n")
-    rel.write("-" * 60 + "\n")
+    # Cabeçalho alinhado
+    rel.write(f"{'Caso':<50} | {'y+ Médio':<12} | {'Tempo de Execução':<20}\n")
+    rel.write("-" * 90 + "\n")
 
     idx_cor = 0
     for caso in TODOS_CASOS:
@@ -91,20 +94,55 @@ with open("Analise_GT2.txt", "w") as rel:
             print(f"Nao encontrado dados de postProcessing de {caso}")
             continue
         
+        # Tempo de execução 
         tempo = "N/A"
-        yplus = "N/A"
-        try:
-            logs = glob.glob(f"{caso}/log*")
-            if logs:
-                with open(logs[0], 'r') as f:
+        logs = glob.glob(f"{caso}/log*")
+        if logs:
+            log_mais_recente = max(logs, key=os.path.getmtime)
+            try:
+                with open(log_mais_recente, 'r') as f:
                     for l in reversed(f.readlines()):
                         if "ExecutionTime" in l or "ClockTime" in l:
-                            tempo = l.split()[2] + "s"; break
-            if os.path.exists("yplus.sh"):
-                out = subprocess.run(["bash", "yplus.sh", caso], capture_output=True, text=True).stdout
-                if out: yplus = out.strip().split('|')[-1].strip()
-        except: pass
-        rel.write(f"{caso} | {yplus} | {tempo}\n")
+                            # Exemplo: "ExecutionTime = 80.93 s"
+                            partes = l.split()
+                            if len(partes) >= 3:
+                                tempo = f"{partes[2]}s"
+                                break
+            except Exception:
+                pass
+                
+        # 2. Extração do y+
+        yplus = "N/A"
+        yplus_arquivos = glob.glob(os.path.join(caso, "postProcessing", "yplus_stats", "**", "yPlus.dat"), recursive=True)
+        
+        if yplus_arquivos:
+            # Seleciona o arquivo mais recente
+            yplus_arquivo = max(yplus_arquivos, key=os.path.getmtime)
+            try:
+                with open(yplus_arquivo, 'r') as f:
+                    for l in reversed(f.readlines()):
+                        l = l.strip()
+                        if not l or l.startswith('#'):
+                            continue
+                        partes = l.split()
+                        if len(partes) > 0:
+                            try:
+                                # A última coluna do yPlus.dat geralmente contém o valor do y+
+                                yplus = f"{float(partes[-1]):.4f}"
+                                break
+                            except ValueError:
+                                pass
+                # Exibe no terminal onde o arquivo foi encontrado
+                if yplus != "N/A":
+                    print(f"   -> [Y+] OK: Encontrado em '{os.path.relpath(yplus_arquivo)}' -> {yplus}")
+            except Exception as e:
+                print(f"   -> [Y+] ERRO de leitura: {e}")
+        else:
+            # Aviso claro no terminal sobre a ausência da pasta
+            print(f"   -> [Y+] ATENÇÃO: Nenhum arquivo yPlus.dat encontrado na pasta yplus_stats de '{caso}/postProcessing/yplus_stats'.")
+        # Escrita no arquivo de análise com formatação
+        rel.write(f"{caso:<50} | {yplus:<12} | {tempo:<20}\n")
+        # ==============================================================================
 
         sample_dir = os.path.join(caso, "postProcessing", "sampleDict")
         arq_tau = None
@@ -133,7 +171,6 @@ with open("Analise_GT2.txt", "w") as rel:
             data_tau = ler_openfoam_blindado(arq_tau)
             # Confirma se tem ao menos 7 colunas (0:dist, 1-3:U, 4-6:tau)
             if len(data_tau) > 0 and data_tau.shape[1] >= 7:
-                # O profile1 no sampleDict começa em x = -0.1
                 x_coords = data_tau[:, 0] - 0.1 
                 
                 # Colunas 4, 5 e 6 representam os componentes (X, Y, Z) da tensão
@@ -152,9 +189,12 @@ with open("Analise_GT2.txt", "w") as rel:
 
         # PLOTAGEM DA LEI DA PAREDE (U+)
         arq_u = None
+        u_mag = None
+        y_coord = None
+
         if ultimo_tempo_str:
             dir_alvo = os.path.join(sample_dir, ultimo_tempo_str)
-            # Busca EXATAMENTE o arquivo profile0.xy
+            # Busca o arquivo profile0.xy
             caminho_profile0 = os.path.join(dir_alvo, "profile0.xy")
             if os.path.exists(caminho_profile0):
                 arq_u = caminho_profile0
@@ -183,18 +223,17 @@ with open("Analise_GT2.txt", "w") as rel:
                 ax1.axvline(x=5, color='gray', linestyle='--', linewidth=1, alpha=0.7)
                 ax1.axvline(x=30, color='gray', linestyle='--', linewidth=1, alpha=0.7)
 
-                # 2. (Opcional) Adicionar textos explicativos no topo do gráfico
                 ax1.plot(y_plus[mask_u], u_plus[mask_u], color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
-                print(f"   -> [U+] OK: Plotados {np.sum(mask_u)} pontos de '{ultimo_tempo_str}/profile0.xy'")
             else:
-                print(f"   -> [U+] ERRO: Arquivo profile0.xy sem os campos de velocidade ou dados insuficientes.")
+                print(f"Arquivo profile0.xy sem  dados insuficientes.")
         else:
-            print("   -> [U+] ERRO: Arquivo 'profile0.xy' não encontrado.")
+            print("Arquivo 'profile0.xy' não encontrado.")
+
+        # Plotagem do Gráfico 3 
+        if u_mag is not None and y_coord is not None:
+            ax3.plot(u_mag / U_INF, y_coord, color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
 
         idx_cor = (idx_cor + 1) % len(CORES)
-
-        # Plotagem do Gráfico 3
-        ax3.plot(u_mag / U_INF, y_coord, color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
 
 # =============================================================================
 # 5. SALVAMENTO

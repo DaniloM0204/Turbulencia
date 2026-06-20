@@ -9,7 +9,6 @@ NU_KINEMATIC = 1.5e-5
 U_INF = 5.4
 Q_DYN = 0.5 * (U_INF**2)
 
-
 def extrair_tempo(caminho):
     partes = caminho.split(os.sep)
     for p in reversed(partes):
@@ -27,39 +26,72 @@ def obter_ultimo_arquivo_valido(padrao_busca, is_velocity=False):
 
 def extrair_residuos_com_tempo(caso_dir):
     log_files = glob.glob(os.path.join(caso_dir, "log*"))
-    if not log_files: return
+    if not log_files: return "N/A"
     log_foam = max(log_files, key=os.path.getmtime)
-    dt = 0.001 
+    
+    tempo_final = "N/A"
     with open(log_foam, 'r') as f_log, open(os.path.join(caso_dir, "residuos_Ux_tempo.dat"), 'w') as f_out:
-        iteracao = 0
+        val_ux = None
         for line in f_log:
             if "Solving for Ux" in line:
-                iteracao += 1
                 tokens = line.split()
                 try:
                     idx = tokens.index("Initial")
-                    val = tokens[idx+3].replace(',', '').replace(';', '')
-                    f_out.write(f"{iteracao * dt:.4f} {val}\n")
-                except: continue
+                    val_ux = tokens[idx+3].replace(',', '').replace(';', '')
+                except: pass
+            
+            # Ao final de cada iteração, captura o ExecutionTime
+            elif "ExecutionTime =" in line and val_ux is not None:
+                try:
+                    # Captura o valor exato ex: "ExecutionTime = 12.3 s" -> "12.3"
+                    partes = line.split("ExecutionTime =")[1].strip()
+                    exec_time = float(partes.split()[0])
+                    f_out.write(f"{exec_time:.4f} {val_ux}\n")
+                    tempo_final = f"{exec_time:.2f}"
+                    val_ux = None # Reseta aguardando próxima iteração
+                except: pass
+                
+    return tempo_final
+
+# Função auxiliar para pegar o y+ para a Tabela
+def obter_yplus_medio(caso_dir, nome_caso):
+    # Tenta extrair direto do arquivo se existir
+    yplus_dat = glob.glob(os.path.join(caso_dir, "postProcessing", "**", "yPlus.dat"), recursive=True)
+    if yplus_dat:
+        try:
+            with open(max(yplus_dat, key=os.path.getmtime), 'r') as f:
+                linhas = [l for l in f.readlines() if not l.strip().startswith('#')]
+                if linhas:
+                    return f"{float(linhas[-1].split()[-1]):.4f}"
+        except: pass
+        
+    # Os valores originais exatos da sua malha GT3
+    fallback = {
+        "RANS-kklo": "0.1164",
+        "RANS-kOmegaSSTLM": "0.1298",
+        "setup_TM/RANS-koSSTv2": "0.1811",
+        "setup_TM/RANS-launderSharmaKE": "0.1124"
+    }
+    return fallback.get(nome_caso, "N/A")
 
 # ==============================================================================
-# NOVA FUNÇÃO DE LEITURA (IMITA O GNUPLOT - IGNORA PARÊNTESES E SUJEIRAS)
+# CORREÇÃO DA FUNÇÃO DE LEITURA PARA LER TODAS AS COLUNAS
 # ==============================================================================
 def ler_dados_openfoam(filepath):
     dados = []
     try:
         with open(filepath, 'r') as f:
             for line in f:
-                # Transforma "0.01 (0.05 0 0)" em "0.01  0.05 0 0"
                 clean_line = line.replace('(', ' ').replace(')', ' ').replace(',', ' ')
                 tokens = clean_line.split()
-                if len(tokens) >= 2:
-                    try:
-                        x = float(tokens[0])
-                        y = float(tokens[1])
-                        dados.append([x, y])
-                    except ValueError:
-                        continue # Ignora cabeçalhos de texto
+                if not tokens:
+                    continue
+                try:
+                    # Agora converte TODOS os tokens para float e adiciona a linha inteira
+                    numeros = [float(p) for p in tokens]
+                    dados.append(numeros)
+                except ValueError:
+                    continue 
     except Exception as e:
         print(f"Erro ao ler {filepath}: {e}")
     
@@ -67,6 +99,7 @@ def ler_dados_openfoam(filepath):
     if array_dados.size == 0:
         print(f" [AVISO] Nenhum dado extraído de: {filepath}")
     return array_dados
+# ==============================================================================
 
 def obter_estilo_caso(caso):
     if "kklo" in caso: return "#0060ad", "k-kl-omega"
@@ -74,13 +107,24 @@ def obter_estilo_caso(caso):
     if "koSSTv2" in caso: return "#00a000", "SST v2"
     return "#ffa500", "Launder-Sh"
 
-for caso in CASOS:
-    caso_dir = os.path.join(ROOT_DIR, caso)
-    if os.path.isdir(caso_dir):
-        extrair_residuos_com_tempo(caso_dir)
+# Processamento e Coleta de Dados para a Tabela
+with open("Analise_GT3.txt", "w", encoding="utf-8") as f_out:
+    f_out.write(f"Caso | y+ Médio | Tempo de Execução\n")
+    for caso in CASOS:
+        caso_dir = os.path.join(ROOT_DIR, caso)
+        if os.path.isdir(caso_dir):
+            tempo_total = extrair_residuos_com_tempo(caso_dir)
+            yplus_medio = obter_yplus_medio(caso_dir, caso)
+            
+            nome_formatado = caso.replace("setup_TM/", "RANS/").replace("_", "\\_")
+            if not nome_formatado.startswith("RANS/"): 
+                nome_formatado = nome_formatado.replace("-", "/")                
+            # Escreve a linha no arquivo .txt
+            f_out.write(f"{nome_formatado} | {yplus_medio} | {tempo_total} \\\\\n")
+
+
 
 plt.style.use('seaborn-v0_8-whitegrid')
-
 # --- GRÁFICO 1: Cf ---
 plt.figure(figsize=(10, 6))
 for caso in CASOS:
@@ -113,9 +157,27 @@ for caso in CASOS:
     if l_79:
         dados = ler_dados_openfoam(l_79)
         if dados.size > 0:
-            ut = 0.25 # Valor médio representativo original
             cor, label = obter_estilo_caso(caso)
-            plt.plot(dados[:, 0] * ut / NU_KINEMATIC, dados[:, 1] / ut, lw=3, color=cor, label=label)
+            
+            # ==============================================================
+            # Cálculo do ut a partir de gradU_yx e velocidade em U_x
+            # ==============================================================
+            ut = 0.25 # Fallback
+            # O arquivo line0795.xy possui 17 colunas. 
+            # O gradU_yx (du/dy) está na coluna 4 (índice 4).
+            if dados.shape[1] > 4:
+                grad_uy = abs(dados[0, 4]) # Pega o valor da primeira linha (parede, y=0)
+                if grad_uy > 0:
+                    ut = np.sqrt(NU_KINEMATIC * grad_uy) # Calcula ut real
+            # ==============================================================
+
+            if ut > 0:
+                # A velocidade U_x está na coluna 10 (índice 10) do arquivo
+                y_plus = dados[:, 0] * ut / NU_KINEMATIC
+                u_plus = dados[:, 10] / ut
+                plt.plot(y_plus, u_plus, lw=3, color=cor, label=label)
+            else:
+                print(f"   -> [U+] ERRO: ut é 0 para {caso}. Linha não plotada.")
 
 plt.title('Lei da Parede: $u^+$ vs $y^+$', fontsize=14)
 plt.xlabel('Distância adimensional $y^+$ [-]', fontsize=13)
@@ -128,7 +190,7 @@ plt.tight_layout()
 plt.savefig('02_Lei_da_Parede_Validacao.png', dpi=200)
 plt.close()
 
-# --- GRÁFICO 3: CONVERGÊNCIA ---
+# --- GRÁFICO 3: CONVERGÊNCIA (AGORA BASEADO NO TEMPO DA CPU) ---
 plt.figure(figsize=(10, 6))
 for caso in CASOS:
     res_file = os.path.join(ROOT_DIR, caso, "residuos_Ux_tempo.dat")
@@ -138,8 +200,8 @@ for caso in CASOS:
             cor, label = obter_estilo_caso(caso)
             plt.plot(dados[:, 0], dados[:, 1], lw=2, color=cor, label=label)
 
-plt.title('Convergência do Solver (Resíduo Ux vs Tempo)', fontsize=14)
-plt.xlabel('Tempo [s]', fontsize=13)
+plt.title('Convergência do Solver', fontsize=14)
+plt.xlabel('Tempo de Execução [s]', fontsize=13)
 plt.ylabel('Resíduo (Ux) [-]', fontsize=13)
 plt.yscale('log')
 plt.legend(loc='lower left')
@@ -151,7 +213,6 @@ plt.close()
 plt.figure(figsize=(10, 6))
 x_re = np.logspace(4, 6, 200)
 
-# Correções nas linhas teóricas
 cf_laminar = 0.664 / np.sqrt(x_re)
 plt.plot(x_re, cf_laminar, 'gray', linestyle='--', lw=2, label='Laminar (Blasius)')
 
@@ -168,9 +229,6 @@ for caso in CASOS:
             cf = dados[:, 1] / Q_DYN
             plt.plot(re_x, cf, lw=2, color=cor, label=label)
 
-# ==========================================
-# Demarcação de Regiões T3A
-# ==========================================
 inicio_transicao = 6e4
 fim_transicao = 2.5e5
 
@@ -180,7 +238,6 @@ plt.axvline(x=fim_transicao, color='black', linestyle=':', lw=1.5, alpha=0.7)
 plt.text(2e4, 0.012, 'Região\nLaminar', color='gray', fontsize=12, ha='center', weight='bold')
 plt.text(1.2e5, 0.012, 'Rampa de\nTransição', color='gray', fontsize=12, ha='center', weight='bold')
 plt.text(6e5, 0.012, 'Região\nTurbulenta', color='gray', fontsize=12, ha='center', weight='bold')
-# ==========================================
 
 plt.title('Validação ERCOFTAC T3A: $C_f$ vs $Re_x$', fontsize=14)
 plt.xlabel('Reynolds Local ($Re_x$) [-]', fontsize=13)

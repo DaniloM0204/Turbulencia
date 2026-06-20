@@ -105,19 +105,12 @@ def executar_e_analisar_caso_gt1(case_path, f_analise):
 if __name__ == "__main__":
     CASES = ["laminar","turbulent_planar", "turbulent_wedge"]
     dados_proc = {}
-    
-    print("=== INICIANDO WORKFLOW COMPLETO DO GT1 ===")
+
     with open("Analise_GT1.txt", "w") as f_analise:
-        f_analise.write("=== RELATÓRIO TÉCNICO GT1 ===\n")
         
         for case in CASES:
             dat = executar_e_analisar_caso_gt1(case, f_analise)
             if dat: dados_proc[case] = dat
-
-        f_analise.write("\n=== ANÁLISE CRÍTICA: WEDGE VS PLANAR ===\n")
-        f_analise.write("A condição 'wedge' resolve equações em coordenadas cilíndricas assumindo axi-simetria.\n")
-        f_analise.write("Isso capta a física 3D de um tubo circular com custo computacional quasi-1D, \n")
-        f_analise.write("sendo superior em fidelidade à condição planar, que simula escoamento entre placas paralelas.\n")
 
     # Plot do pos-processamento
     base_graficos = "Resultados_Graficos_GT1"
@@ -150,7 +143,7 @@ if "laminar" in dados_proc and "turbulent_wedge" in dados_proc:
         plt.plot(r_lam, v_lam, marker='o', linestyle='-', color=c1, label='OpenFOAM - Solução Laminar')
         plt.plot(r_turb, v_turb, marker='o', linestyle='-', color=c2, label='OpenFOAM - Turbulento (Wedge)')
         if tem_planar:
-            plt.plot(r_planar, v_planar, marker='^', linestyle='--', color=c3, label='OpenFOAM - Turbulento (Planar)')
+            plt.plot(r_planar, v_planar, marker='o', markevery=30, linestyle='-', color=c3, label='OpenFOAM - Turbulento (Planar)')
         
         plt.title('Velocidade radial na saída', fontsize=14)
         plt.xlabel('Raio (r) [m]', fontsize=12)
@@ -180,10 +173,10 @@ if "laminar" in dados_proc and "turbulent_wedge" in dados_proc:
         v_powerlaw = 1.26117411111 * (np.maximum(0, 1 - r_teorico/0.1))**(1./6.)
         
         plt.figure(figsize=(9, 6))
-        plt.plot(r_teorico, v_powerlaw, linestyle='-', color=c1, lw=2, label='Correlação Turbulenta (n=6)')
+        plt.plot(r_teorico, v_powerlaw,marker='o',markevery=10, linestyle='-', color=c1, lw=2, label='Correlação Turbulenta (n=6)')
         plt.plot(r_turb, v_turb, marker='o', linestyle='-', color=c2, label='OpenFOAM - Turbulento (Wedge)')
         if tem_planar:
-            plt.plot(r_planar, v_planar, marker='^', linestyle='--', color=c3, label='OpenFOAM - Turbulento (Planar)')
+            plt.plot(r_planar, v_planar, marker='o',markevery=30, linestyle='-', color=c3, lw=2, label='OpenFOAM - Turbulento (Planar)')
         
         plt.title('Perfil turbulento na saída', fontsize=14)
         plt.xlabel('Raio (r) [m]', fontsize=12)
