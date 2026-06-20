@@ -9,6 +9,7 @@ NU_KINEMATIC = 1.5e-5
 U_INF = 5.4
 Q_DYN = 0.5 * (U_INF**2)
 
+
 def extrair_tempo(caminho):
     partes = caminho.split(os.sep)
     for p in reversed(partes):
@@ -68,7 +69,7 @@ def ler_dados_openfoam(filepath):
     return array_dados
 
 def obter_estilo_caso(caso):
-    if "kklo" in caso: return "#0060ad", "kkl-omega"
+    if "kklo" in caso: return "#0060ad", "k-kl-omega"
     if "SSTLM" in caso: return "#dd181f", "SST-LM"
     if "koSSTv2" in caso: return "#00a000", "SST v2"
     return "#ffa500", "Launder-Sh"
@@ -127,7 +128,7 @@ plt.tight_layout()
 plt.savefig('02_Lei_da_Parede_Validacao.png', dpi=200)
 plt.close()
 
-# --- GRÁFICO 3: CONVERGÊNCIA---
+# --- GRÁFICO 3: CONVERGÊNCIA ---
 plt.figure(figsize=(10, 6))
 for caso in CASOS:
     res_file = os.path.join(ROOT_DIR, caso, "residuos_Ux_tempo.dat")
@@ -137,7 +138,7 @@ for caso in CASOS:
             cor, label = obter_estilo_caso(caso)
             plt.plot(dados[:, 0], dados[:, 1], lw=2, color=cor, label=label)
 
-plt.title('Convergência do Solver', fontsize=14)
+plt.title('Convergência do Solver (Resíduo Ux vs Tempo)', fontsize=14)
 plt.xlabel('Tempo [s]', fontsize=13)
 plt.ylabel('Resíduo (Ux) [-]', fontsize=13)
 plt.yscale('log')
@@ -149,8 +150,13 @@ plt.close()
 # --- GRÁFICO 4: Cf vs Re_x ---
 plt.figure(figsize=(10, 6))
 x_re = np.logspace(4, 6, 200)
-plt.plot(x_re, 0.664 / np.sqrt(x_re), 'gray', linestyle='--', lw=2, label='Laminar (Blasius)')
-plt.plot(x_re, 0.455 / (np.log10(0.06 * x_re))**2, 'k--', lw=2, label='Turbulento (Prandtl)')
+
+# Correções nas linhas teóricas
+cf_laminar = 0.664 / np.sqrt(x_re)
+plt.plot(x_re, cf_laminar, 'gray', linestyle='--', lw=2, label='Laminar (Blasius)')
+
+cf_turbulento = 0.0592 / (x_re**0.2) 
+plt.plot(x_re, cf_turbulento, 'k--', lw=2, label='Turbulento (Schlichting)')
 
 for caso in CASOS:
     arq = obter_ultimo_arquivo_valido(os.path.join(ROOT_DIR, caso, "postProcessing", "**", "y01.xy"))
@@ -162,14 +168,30 @@ for caso in CASOS:
             cf = dados[:, 1] / Q_DYN
             plt.plot(re_x, cf, lw=2, color=cor, label=label)
 
-plt.title('Validação ERCOFTAC T3A: Cf vs $Re_x$', fontsize=14)
+# ==========================================
+# Demarcação de Regiões T3A
+# ==========================================
+inicio_transicao = 6e4
+fim_transicao = 2.5e5
+
+plt.axvline(x=inicio_transicao, color='black', linestyle=':', lw=1.5, alpha=0.7)
+plt.axvline(x=fim_transicao, color='black', linestyle=':', lw=1.5, alpha=0.7)
+
+plt.text(2e4, 0.012, 'Região\nLaminar', color='gray', fontsize=12, ha='center', weight='bold')
+plt.text(1.2e5, 0.012, 'Rampa de\nTransição', color='gray', fontsize=12, ha='center', weight='bold')
+plt.text(6e5, 0.012, 'Região\nTurbulenta', color='gray', fontsize=12, ha='center', weight='bold')
+# ==========================================
+
+plt.title('Validação ERCOFTAC T3A: $C_f$ vs $Re_x$', fontsize=14)
 plt.xlabel('Reynolds Local ($Re_x$) [-]', fontsize=13)
-plt.ylabel('Cf [-]', fontsize=13)
+plt.ylabel('Coeficiente de Atrito $C_f$ [-]', fontsize=13)
 plt.xscale('log')
 plt.yscale('log')
+
 plt.xlim(1e4, 1e6)
-plt.ylim(1e-3, 1e-2)
-plt.legend(loc='lower left')
+plt.ylim(1e-3, 1.5e-2) 
+
+plt.legend(loc='lower left', fontsize=10, frameon=True)
 plt.tight_layout()
 plt.savefig('04_Cf_vs_Re.png', dpi=200)
 plt.close()

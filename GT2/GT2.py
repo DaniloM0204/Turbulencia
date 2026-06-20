@@ -4,13 +4,11 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 
-# =============================================================================
-# 1. CONFIGURAÇÕES FÍSICAS DO ESCOAMENTO
-# =============================================================================
+
 U_INF = 1.0         # Velocidade da corrente livre [m/s]
 NU = 1.5e-5         # Viscosidade cinemática do ar [m²/s]
 RHO = 1.0           # Densidade do fluido [kg/m³]
-UTAU_REF = 0.045    # Velocidade de fricção de referência (fallback)
+UTAU_REF = 0.045    # Velocidade de fricção
 
 CASOS_RANS = [
     "RANS/KOmegaSST_highRE", "RANS/KOmegaSST_lowRE_V1", 
@@ -21,9 +19,7 @@ TODOS_CASOS = CASOS_RANS + CASOS_SRS
 
 CORES = ['#0060ad', '#dd181f', '#00a000', '#ffa500', '#8a2be2', '#ff1493', '#00ffff']
 
-# =============================================================================
-# 2. FERRAMENTAS DE BUSCA E LEITURA BLINDADAS
-# =============================================================================
+# 2. Busca de dados
 def ler_openfoam_blindado(caminho):
     dados = []
     try:
@@ -45,9 +41,6 @@ def ler_openfoam_blindado(caminho):
 
 subprocess.run("find . -name '*.sh' -exec sed -i 's/\\r$//' {} \\;", shell=True, stderr=subprocess.DEVNULL)
 
-# =============================================================================
-# 3. PREPARAÇÃO DOS GRÁFICOS
-# =============================================================================
 plt.style.use('seaborn-v0_8-whitegrid')
 
 # Gráfico 1: Lei da Parede
@@ -83,12 +76,8 @@ ax3.set_title("Perfil de Velocidade na Camada Limite", fontsize=14)
 ax3.set_xlabel("Velocidade Adimensional (U/U_inf)", fontsize=12)
 ax3.set_ylabel("Distância da parede y [m]", fontsize=12)
 ax3.set_xlim(0, 1.2)
-ax3.set_ylim(0, 0.1) # Altura máxima definida no seu sampleDict
+ax3.set_ylim(0, 0.1)
 
-# =============================================================================
-# 4. LOOP PRINCIPAL E EXTRAÇÃO
-# =============================================================================
-print("\n" + "="*60 + "\nINICIANDO EXTRAÇÃO DE DADOS\n" + "="*60)
 
 with open("Analise_GT2.txt", "w") as rel:
     rel.write("Caso | y+ Médio | Tempo de Execução\n")
@@ -97,10 +86,9 @@ with open("Analise_GT2.txt", "w") as rel:
     idx_cor = 0
     for caso in TODOS_CASOS:
         nome_curto = caso.split('/')[-1]
-        print(f"\n[{nome_curto}]")
         
         if not os.path.exists(f"{caso}/postProcessing"):
-            print("   -> Simulação não encontrada. Ignorando...")
+            print(f"Nao encontrado dados de postProcessing de {caso}")
             continue
         
         tempo = "N/A"
@@ -118,9 +106,6 @@ with open("Analise_GT2.txt", "w") as rel:
         except: pass
         rel.write(f"{caso} | {yplus} | {tempo}\n")
 
-        # ---------------------------------------------------------
-        # PLOTAGEM DO CF (Extração do profile1.xy)
-        # ---------------------------------------------------------
         sample_dir = os.path.join(caso, "postProcessing", "sampleDict")
         arq_tau = None
         tau_valido = False
@@ -139,7 +124,7 @@ with open("Analise_GT2.txt", "w") as rel:
                 ultimo_tempo_str = sorted(tempos)[-1][1]
                 dir_alvo = os.path.join(sample_dir, ultimo_tempo_str)
                 
-                # Busca EXATAMENTE o arquivo profile1.xy
+                # Busca o arquivo profile1.xy
                 caminho_profile1 = os.path.join(dir_alvo, "profile1.xy")
                 if os.path.exists(caminho_profile1):
                     arq_tau = caminho_profile1
@@ -159,16 +144,13 @@ with open("Analise_GT2.txt", "w") as rel:
                 
                 mask = x_coords > 0.001
                 ax2.plot(x_coords[mask], Cf[mask], color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
-                print(f"   -> [Cf] OK: Plotados {np.sum(mask)} pontos de '{ultimo_tempo_str}/profile1.xy'")
                 tau_valido = True
             else:
-                print(f"   -> [Cf] ERRO: Arquivo profile1.xy sem os campos de tensão ou dados insuficientes.")
+                print(f" Arquivo profile1.xy com dados insuficientes.")
         else:
-            print("   -> [Cf] ERRO: Arquivo 'profile1.xy' não encontrado no último tempo.")
+            print("Arquivo 'profile1.xy' não encontrado.")
 
-        # ---------------------------------------------------------
-        # PLOTAGEM DA LEI DA PAREDE (U+) (Extração do profile0.xy)
-        # ---------------------------------------------------------
+        # PLOTAGEM DA LEI DA PAREDE (U+)
         arq_u = None
         if ultimo_tempo_str:
             dir_alvo = os.path.join(sample_dir, ultimo_tempo_str)
