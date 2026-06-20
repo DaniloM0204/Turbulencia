@@ -1,18 +1,17 @@
-# 🚀 Análise Aerodinâmica e Fluidodinâmica com OpenFOAM (Casos GT1, GT2 e GT3)
+# Análise dos casos GT1, GT2 e GT3 com OpenFOAM 
 
 Este repositório contém uma suíte de automação em Python para execução, extração de dados e pós-processamento de simulações de Dinâmica dos Fluidos Computacional (CFD) utilizando o **OpenFOAM**. O projeto é dividido em três Grupos de Trabalho (GTs), focados em diferentes fenômenos físicos: Escoamento Interno, Camada Limite Turbulenta e Modelagem de Transição.
 
-## 📋 Pré-requisitos
+## Pré-requisitos
 
 Para executar os scripts perfeitamente, garanta que seu ambiente possui:
 - **OpenFOAM** (Configurado e carregado no terminal, ex: `source /opt/openfoam10/etc/bashrc`)
 - **Python 3.x**
 - **Bibliotecas Python:** `numpy`, `matplotlib` (Instale com: `pip install numpy matplotlib`)
-- **Gnuplot:** Necessário para renderização dos gráficos do GT1 e GT3 (Instale com: `sudo apt-get install gnuplot`)
 
 ---
 
-## 📂 Estrutura e Execução dos Casos
+## Execução dos Casos
 
 ### 🔹 GT1: Escoamento Interno (Planar vs. Wedge)
 **Objetivo:** Comparar o escoamento incompressível em dutos utilizando formulação puramente planar (2D) versus coordenada cilíndrica/axi-simétrica (condição `wedge`).
