@@ -5,10 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Constantes
-U_INF = 1.0
-NU = 1.5e-5
+U_inferior = 1.0
+nu = 1.5e-5
 RHO = 1.0
-UTAU_REF = 0.045
+Utau_ref = 0.045
 
 CASOS_RANS = [
     "RANS/KOmegaSST_highRE", "RANS/KOmegaSST_lowRE_V1", 
@@ -19,7 +19,7 @@ TODOS_CASOS = CASOS_RANS + CASOS_SRS
 
 CORES = ['#0060ad', '#dd181f', '#00a000', '#ffa500', '#8a2be2', '#ff1493', '#00ffff']
 
-def ler_openfoam_blindado(caminho):
+def le_dados_open_foam(caminho):
     dados = []
     try:
         with open(caminho, 'r') as f:
@@ -112,13 +112,13 @@ def gerar_graficos_gt2():
     ax2.set_ylim(0, 0.014)
 
     x_teorico = np.linspace(1e-3, 2.0, 500)
-    Re_x = (x_teorico * U_INF) / NU
+    Re_x = (x_teorico * U_inferior) / nu
     ax2.plot(x_teorico, 0.664 / np.sqrt(Re_x), 'k--', linewidth=2, label='Laminar (Blasius)')
     ax2.plot(x_teorico, 0.0592 / (Re_x**0.2), 'k-', linewidth=2, label='Turbulento (Prandtl)')
 
     fig3, ax3 = plt.subplots(figsize=(8, 8))
     ax3.set_title("Perfil de Velocidade na Camada Limite", fontsize=14)
-    ax3.set_xlabel("Velocidade Adimensional (U/U_inf)", fontsize=12)
+    ax3.set_xlabel("Velocidade Adimensional (U/U_inferior)", fontsize=12)
     ax3.set_ylabel("Distância da parede y [m]", fontsize=12)
     ax3.set_xlim(0, 1.2)
     ax3.set_ylim(0, 0.1)
@@ -153,12 +153,12 @@ def gerar_graficos_gt2():
                     arq_tau = caminho_profile1
 
         if arq_tau:
-            data_tau = ler_openfoam_blindado(arq_tau)
+            data_tau = le_dados_open_foam(arq_tau)
             if len(data_tau) > 0 and data_tau.shape[1] >= 7:
                 x_coords = data_tau[:, 0] - 0.1
                 tau_mag = np.linalg.norm(data_tau[:, 4:7], axis=1)
                 tau_dinamico = tau_mag * RHO
-                Cf = tau_dinamico / (0.5 * RHO * U_INF**2)
+                Cf = tau_dinamico / (0.5 * RHO * U_inferior**2)
                 mask = x_coords > 0.001
                 ax2.plot(x_coords[mask], Cf[mask], color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
                 tau_valido = True
@@ -174,7 +174,7 @@ def gerar_graficos_gt2():
                 arq_u = caminho_profile0
         
         if arq_u:
-            data_u = ler_openfoam_blindado(arq_u)
+            data_u = le_dados_open_foam(arq_u)
             if len(data_u) > 0 and data_u.shape[1] >= 4:
                 y_coord = np.abs(data_u[:, 0] - np.min(data_u[:, 0]))
                 u_mag = np.linalg.norm(data_u[:, 1:4], axis=1)
@@ -184,9 +184,9 @@ def gerar_graficos_gt2():
                     idx_closest = np.argmin(np.abs(x_coords - x_prof))
                     u_tau = np.sqrt(tau_mag[idx_closest])
                 else:
-                    u_tau = UTAU_REF
+                    u_tau = Utau_ref
                 
-                y_plus = (y_coord * u_tau) / NU
+                y_plus = (y_coord * u_tau) / nu
                 u_plus = u_mag / u_tau
                 
                 mask_u = y_plus > 1e-3
@@ -195,7 +195,7 @@ def gerar_graficos_gt2():
                 ax1.plot(y_plus[mask_u], u_plus[mask_u], color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
 
         if u_mag is not None and y_coord is not None:
-            ax3.plot(u_mag / U_INF, y_coord, color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
+            ax3.plot(u_mag / U_inferior, y_coord, color=CORES[idx_cor], linewidth=2.5, label=nome_curto)
 
         idx_cor = (idx_cor + 1) % len(CORES)
 
@@ -211,6 +211,6 @@ def gerar_graficos_gt2():
     fig3.savefig("GT2_03_Perfil_Camada_Limite.png", dpi=300)
 
 if __name__ == "__main__":
-    subprocess.run("find . -name '*.sh' -exec sed -i 's/\\r$//' {} \\;", shell=True, stderr=subprocess.DEVNULL)
+    subprocess.run("find . -name '*.sh' -exec sed -i 's/\\r$//' {} \\;", shell=True, stderr=subprocess.DEVnuLL)
     gerar_analise_gt2()
     gerar_graficos_gt2()

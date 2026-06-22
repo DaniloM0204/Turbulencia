@@ -1,0 +1,63 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |				
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10                                  	
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      k;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -2 0 0 0 0];
+
+//internalField   uniform 1e-12;
+internalField   uniform 0.00015;
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    outlet
+    {
+        type            zeroGradient;
+    }
+
+    top
+    {
+        //type            fixedValue;
+        //value           $internalField;
+        //value           uniform 1e-12;
+
+	//To enable wall function - Best for LRN-HRN (1)
+        type	          kqRWallFunction;
+        value             uniform 1e-12;
+	//value           $internalField;
+
+	//LRN-HRN
+        //type	          kLowReWallFunction;
+        //value            uniform 1e-12;
+
+//(1) OK for LaunderSharmaKE
+    }
+
+    front
+    {
+        type            wedge;
+    }
+
+    back
+    {
+        type            wedge;
+    }
+}
+
+// ************************************************************************* //

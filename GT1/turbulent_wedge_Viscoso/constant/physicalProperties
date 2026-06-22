@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |				
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10                                  	
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      physicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+/*
+The 'constant' viscosity model is selected in the 'physicalProperties'
+dictionary by
+
+viscosityModel  constant;
+
+which is equivalent to the previous entry in the 'transportProperties'
+dictionary
+
+transportModel  Newtonian;
+
+but backward-compatibility is provided for both the keyword and model
+type.
+
+https://github.com/OpenFOAM/OpenFOAM-10/commit/65ef2cf331ca75a12d4db2914de0b8c3a21ac6b9
+*/
+
+//transportModel  Newtonian;
+viscosityModel  constant;
+
+nu              nu              [0 2 -1 0 0 0 0] 1.5e-4;	//Turbulent Re 10000
+//nu              nu              [0 2 -1 0 0 0 0] 1.5e-4;	//laminar Re 100
+
+// ************************************************************************* //

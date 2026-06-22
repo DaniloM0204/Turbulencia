@@ -1,0 +1,25 @@
+set terminal qt 0
+
+set title 'Turbulent profile at outlet' 
+
+set xlabel 'r/R'
+set ylabel 'u/u_{max}'
+
+#set xtics 0,0.1,1.
+set grid
+
+plot  1.26117411111*(1-x/0.1)**(1./6.) title "Tubulent correlation - Power law", \
+     'kepsilon/1000/profile0.xy' u ($1):($2) w lp pt 7 title "OpenFOAM - kEpsilon", \
+     'komegaSST/1000/profile0.xy' u ($1):($2) w lp pt 7 title "OpenFOAM - kOmegaSST", \
+     'spalartAllmaras/1000/profile0.xy' u ($1):($2) w lp pt 7 title "OpenFOAM - SpalartAllmaras"
+
+#Power law correlation Umax*(1-r/R)^(1/n)
+#The exponent n depends on Re
+
+
+
+
+
+pause -1
+
+#    EOF

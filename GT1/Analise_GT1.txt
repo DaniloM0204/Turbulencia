@@ -1,21 +1,16 @@
-=== RELATÓRIO TÉCNICO GT1 ===
 Modelo: laminar
- - Custo: 7.402112 s
+ - Custo: 6.61757 s
  - y+ Parede: Min 5.935470565496e-02 | Max 9.445032131662e-02 | Med 6.005445858384e-02
- - Tensão Cisalhante processada.
 ---
 Modelo: turbulent_planar
- - Custo: 6.079224 s
+ - Custo: 4.795694 s
  - y+ Parede: Min 1.178998012109e+00 | Max 2.455782834821e+00 | Med 1.220471897336e+00
- - Tensão Cisalhante processada.
 ---
 Modelo: turbulent_wedge
- - Custo: 12.886456 s
+ - Custo: 11.548485 s
  - y+ Parede: Min 1.159112415311e+00 | Max 2.458173480883e+00 | Med 1.262212488936e+00
- - Tensão Cisalhante processada.
 ---
-
-=== ANÁLISE CRÍTICA: WEDGE VS PLANAR ===
-A condição 'wedge' resolve equações em coordenadas cilíndricas assumindo axi-simetria.
-Isso capta a física 3D de um tubo circular com custo computacional quasi-1D, 
-sendo superior em fidelidade à condição planar, que simula escoamento entre placas paralelas.
+Modelo: turbulent_wedge_Viscoso
+ - Custo: 11.317905 s
+ - y+ Parede: Min 2.367573891644e-01 | Max 5.439607985324e-01 | Med 2.583865759235e-01
+---

@@ -1,0 +1,72 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |				
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10                                  	
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      functionObject;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+functions
+{
+
+//////////////////////////////////////////////////////////////////////////
+//to add total(p) to database
+
+    readFields1
+    {
+        type        readFields;
+        libs ("libfieldFunctionObjects.so");
+        
+        fields
+        (
+            total(p)
+        );
+    }
+///////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+    patch_sampling
+    {
+        type            surfaceRegion;
+        functionObjectLibs ("libfieldFunctionObjects.so");
+        enabled         true;
+
+	//outputControl     outputTime;
+	writeControl   timeStep;
+	writeInterval  1;
+
+	writeFields no;
+
+        //log             true;
+        //valueOutput     false;
+
+        regionType          patch;
+        name      outlet;
+
+	operation       sum;
+	//operation       average;
+        //operation       areaNormalIntegrate;	//for massflow
+        //operation       areaIntegrate;
+	//operation	  weightedAreaAverage;
+        //operation       weightedAverage
+        //weightField 	p;			//Cannot use weightField for a sampledSurface
+        //operation       max;
+
+        fields
+        (
+	    phi
+	    p
+            U
+	    total(p)
+        );
+    }
+///////////////////////////////////////////////////////////////////////////
+
+}

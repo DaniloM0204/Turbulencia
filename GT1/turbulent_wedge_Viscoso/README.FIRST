@@ -1,0 +1,30 @@
+#To clean empty patches.  Patch bottom is left empty after extrudeMesh
+createPatch -overwrite
+
+
+
+#To do some cleaning using sed
+#sed -i 's/empty/wedge/g' constant/polyMesh/boundary
+
+
+
+#Some extra postprocessing - Optional
+simpleFoam -postProcess -func totalPressureIncompressible -latestTime
+simpleFoam -postProcess -dict system/functionObject1 -latestTime	
+postProcess -func 'grad(U)' -latestTime
+postProcess -func "flowRatePatch(name=outlet)" -latestTime 
+postProcess -func "minMaxComponents(U,p)" -latestTime
+postProcess -func "faceMax(regionType=patch,name=outlet,U)" -latestTime
+postProcess -func surfacesDict0 -latestTime -noZero
+postProcess -func probesDict0 -latestTime -noZero
+
+
+
+
+#To visualize the rotational periodicity in paraview, use the angular periodic filter
+#Remember, the rotational axis is x, the rotation point is (0 0 0.1), and the rotation angle (wedge angle) is 2
+
+
+
+To list turbulence model available for the solver:
+simpleFoam -listMomentumTransportModels
